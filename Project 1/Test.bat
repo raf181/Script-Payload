@@ -6,7 +6,7 @@ setlocal enabledelayedexpansion
 :: Set Console Window Properties 80x25-> mode con: cols=80 lines=25 
 
 :: Set the URL of the configuration file on GitHub
-set "configUrl=https://raw.githubusercontent.com/raf181/Script-Payload/blob/main/Project%201/Config/Remote/config.cfg"
+set "configUrl=https://raw.githubusercontent.com/raf181/Script-Payload/main/Project%201/Config/Remote/config.cfg?token=GHSAT0AAAAAACD4CYPDS32BP27TSTTHHZ44ZGS2VNQ"
 
 :: Set loacl path for antidote codes
 set "local_antidote=%USERPROFILE%\OneDrive\Documentos\reaper_antidote_codes.cfg"
@@ -81,7 +81,7 @@ if %available_remote_config% equ true (
 
 
 
-:Active
+:Active 
 :: Retrieve the Antidote codes from the remote file
 :: for /f "tokens=2 delims== " %%a in ('%config_file% ^| findstr /i "Antidote_Codes"') do (
 ::     set "antidoteCode=%%~a"
@@ -106,12 +106,12 @@ if %available_remote_config% equ true (
 
 :: Read the remote configuration file
 for /f "usebackq tokens=1* delims== " %%a in (`%config_file%`) do (
-    if /i "%%a"=="TARGET_SERVER" (
+    if /i "%%a"=="SERVER_DSERVER_REMOTE" (
         :: Get the target server from the remote configuration
-        set "target_server=%%b"
-    ) else if /i "%%a"=="TARGET_PORT" (
+        set "server_dserver_remote=%%b"
+    ) else if /i "%%a"=="SERVER_DSERVER_REMOTE_PORT" (
         :: Get the target server port from the remote configuration
-        set "target_port=%%b"
+        set "server_dserver_remote_port=%%b"
     )
 )
 
