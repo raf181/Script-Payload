@@ -17,6 +17,15 @@ $cpuInfo = @{
     "CPU Speed (MHz)" = (Get-WmiObject Win32_Processor).MaxClockSpeed
 }
 
+# Collect GPU information
+$gpuInfo = Get-WmiObject Win32_VideoController | ForEach-Object {
+    [PSCustomObject]@{
+        "GPU" = $_.Name
+        "Driver Version" = $_.DriverVersion
+        "Memory (MB)" = [math]::Round($_.AdapterRAM / 1MB, 2)
+    }
+}
+
 # Collect memory information (same as before)
 $memoryInfo = @{
     "Total Memory (GB)" = [math]::Round((Get-WmiObject Win32_PhysicalMemory | Measure-Object Capacity -Sum).Sum / 1GB, 2)
@@ -65,17 +74,6 @@ $openPorts = $portRange | ForEach-Object {
     }
 }
 
-# Collect GPU information
-$gpuInfo = Get-WmiObject Win32_VideoController | ForEach-Object {
-    [PSCustomObject]@{
-        "GPU" = $_.Name
-        "Driver Version" = $_.DriverVersion
-        "Memory (MB)" = [math]::Round($_.AdapterRAM / 1MB, 2)
-    }
-}
-
-
-
 # Create a nicely formatted report
 $report = @"
 --- System Information ---
@@ -86,10 +84,13 @@ Node Name: $($systemInfo['Node Name'])
 Machine: $($systemInfo['Machine'])
 
 --- CPU Information ---
-CPU Speed (MHz): $($cpuInfo['CPU Speed (MHz)']) Total Cores: $($cpuInfo['Total Cores']) Physical Cores: $($cpuInfo['Physical Cores'])
+CPU Speed (MHz): $($cpuInfo['CPU Speed (MHz)']) 
+Total Cores: $($cpuInfo['Total Cores']) 
+Physical Cores: $($cpuInfo['Physical Cores'])
 
 --- Memory Information ---
-Used Memory (%): $($memoryInfo['Used Memory (%)']) Total Memory (GB): $($memoryInfo['Total Memory (GB)'])
+Used Memory (%): $($memoryInfo['Used Memory (%)']) 
+Total Memory (GB): $($memoryInfo['Total Memory (GB)'])
 
 --- GPU Information ---
 $($gpuInfo | Format-Table -AutoSize | Out-String)

